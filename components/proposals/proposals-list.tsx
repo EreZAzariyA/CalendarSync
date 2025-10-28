@@ -119,11 +119,12 @@ export function ProposalsList() {
 
   if (proposals.length === 0) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center">
+      <Card className="text-center">
+        <CardContent className="py-12">
           <Calendar className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium mb-2">No proposals yet</h3>
-          <p className="text-muted-foreground">Share your availability link to start receiving meeting proposals</p>
+          <p className="text-muted-foreground mb-6">Share your availability link to start receiving meeting proposals.</p>
+          <Button href="/share">Create Shareable Link</Button>
         </CardContent>
       </Card>
     )
