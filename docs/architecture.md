@@ -1,82 +1,133 @@
-### 1. Introduction
+# Frontend Architecture: CalendarSync UI Enhancement
 
-This document outlines the proposed frontend architecture for the "CalendarSync" application, focusing on enhancing existing functionalities, integrating new features, and modernizing the user interface. The architecture aims to provide a scalable, maintainable, and performant foundation, leveraging the existing React and TypeScript codebase.
+## 1. Introduction
 
-### 2. Core Architectural Principles
+This document outlines the proposed frontend architecture, component integration strategy, and migration plan for enhancing the existing CalendarSync application. The goal is to safely integrate new features, modernize existing UI elements, and improve overall user experience while maintaining the current functionality.
 
-*   **Component-Based Design:** Emphasize reusable, self-contained UI components.
-*   **Unidirectional Data Flow:** Adhere to patterns like Redux or React Context for predictable state management.
-*   **Modularity:** Organize code into logical modules (e.g., features, shared, utilities).
-*   **Performance Optimization:** Focus on efficient rendering, lazy loading, and optimized asset delivery.
-*   **Accessibility (A11y):** Ensure the UI is usable by everyone, regardless of ability.
+**Current Stack:**
+*   **Framework:** Next.js
+*   **UI Library:** Radix UI
+
+## 2. Architectural Principles
+
+The following principles will guide the UI enhancement efforts:
+
+*   **Component-Driven Development:** Focus on building reusable, modular components.
+*   **Progressive Enhancement:** Ensure core functionality is accessible, with enhancements layered on top.
+*   **Performance Optimization:** Prioritize fast loading times and smooth interactions.
+*   **Maintainability & Readability:** Write clean, well-documented code that is easy to understand and extend.
+*   **Accessibility (a11y):** Adhere to WCAG guidelines to ensure inclusivity.
 *   **Testability:** Design components and logic to be easily testable.
-*   **Progressive Enhancement:** Implement new features in a way that gracefully degrades for older browsers or less capable devices if necessary.
-*   **Design System Integration:** Align with existing or future design systems for consistent UI/UX.
+*   **Scalability:** Structure the application to accommodate future growth and features.
+*   **Design System Adherence:** Leverage and extend the existing Radix UI foundation for consistency.
 
-### 3. Proposed Architecture Layers
+## 3. Proposed Frontend Architecture
 
-The frontend architecture can be broadly categorized into the following layers:
+The CalendarSync frontend will follow a modular, component-based architecture, leveraging Next.js features for routing, data fetching, and build optimization.
 
-*   **Presentation Layer (Components):**
-    *   **Atomic Components:** Smallest UI elements (buttons, inputs, icons).
-    *   **Molecular Components:** Combinations of atomic components (forms, navigation bars).
-    *   **Organism Components:** Complex sections of the UI composed of molecular components (calendar grid, event details card).
-    *   **Template Components:** Page layouts that arrange organisms.
-    *   **Page Components:** Top-level components representing specific views/routes.
-    *   *Technology:* React, TypeScript, CSS/CSS-in-JS.
+### 3.1. Directory Structure (Conceptual)
 
-*   **State Management Layer:**
-    *   Manages application-wide and local component state.
-    *   *Existing:* Likely React's `useState` and `useContext`.
-    *   *Proposed Enhancement:* Evaluate the need for a global state management library like Redux Toolkit or Zustand for complex, shared state.
+```
+src/
+├── app/                  # Next.js App Router (pages, layouts, loading, error, etc.)
+│   ├── (auth)/           # Grouping for authentication-related routes
+│   ├── (dashboard)/      # Grouping for main application routes
+│   └── layout.tsx
+│   └── page.tsx
+├── components/           # Reusable UI components
+│   ├── ui/               # Radix UI based components (extended/customized)
+│   ├── common/           # General purpose components (e.g., Button, Input)
+│   ├── specific/         # Feature-specific components (e.g., CalendarWidget, EventCard)
+│   └── index.ts          # Barrel file for easier imports
+├── lib/                  # Utility functions, helpers, constants
+│   ├── utils.ts
+│   ├── constants.ts
+│   └── api.ts            # API interaction logic
+├── hooks/                # Custom React hooks
+├── styles/               # Global styles, CSS variables, Tailwind config
+│   ├── globals.css
+│   └── tailwind.config.js
+├── types/                # TypeScript type definitions
+├── contexts/             # React Contexts for global state (if needed)
+└── services/             # Client-side services (e.g., authentication service)
+```
 
-*   **Data Access Layer (Services/APIs):**
-    *   Handles communication with backend APIs (fetching, sending, updating data).
-    *   Encapsulates data fetching logic and error handling.
-    *   *Technology:* Fetch API, Axios, or a data-fetching library like React Query.
+### 3.2. Technology Stack
 
-*   **Routing Layer:**
-    *   Manages navigation within the single-page application.
-    *   *Existing:* Likely React Router.
+*   **Framework:** Next.js (React)
+*   **UI Components:** Radix UI (headless components)
+*   **Styling:** Tailwind CSS (or existing CSS-in-JS/CSS Modules solution)
+*   **State Management:** React Context API, `useState`, `useReducer` (or a dedicated library like Zustand/Jotai if complexity demands)
+*   **Data Fetching:** React Query / SWR (for efficient caching and revalidation)
+*   **Form Management:** React Hook Form
+*   **Validation:** Zod (integrated with React Hook Form)
+*   **TypeScript:** For type safety and improved developer experience.
 
-*   **Styling Layer:**
-    *   Defines the visual appearance of components.
-    *   *Existing:* CSS.
-    *   *Proposed Enhancement:* Consider adopting a CSS-in-JS library (e.g., Styled Components, Emotion) or a utility-first CSS framework (e.g., Tailwind CSS) for better component isolation and maintainability, if aligned with the project's long-term vision.
+## 4. Component Integration Strategy
 
-*   **Utilities/Helpers Layer:**
-    *   Contains pure functions and helper modules for common tasks (date formatting, validation, debouncing).
+The strategy for integrating new components and enhancing existing ones will focus on consistency, reusability, and minimal disruption.
 
-### 4. Component Integration Strategy
+### 4.1. Leveraging Radix UI
 
-*   **Encapsulation:** Each component should be responsible for its own rendering and internal state, exposing a clear API (props) for communication with parent components.
-*   **Container/Presentation Pattern:** Separate concerns between "smart" container components (handle data fetching, state logic) and "dumb" presentational components (focus solely on UI rendering based on props).
-*   **Hooks for Logic Reuse:** Leverage React Hooks to abstract and reuse stateful logic across components (e.g., custom hooks for form handling, API calls).
-*   **Design System Adherence:** When introducing new components or refactoring existing ones, ensure they conform to the established design system (colors, typography, spacing, component variations).
-*   **Storybook (Optional but Recommended):** Utilize Storybook to develop, test, and document UI components in isolation, facilitating collaboration and ensuring consistency.
+*   **Foundation:** Continue to use Radix UI as the base for accessible and unstyled components.
+*   **Customization:** Extend Radix UI components with CalendarSync's specific styling (e.g., using Tailwind CSS classes or a custom `cn` utility).
+*   **Composition:** Compose Radix UI primitives into higher-level, application-specific components (e.g., a `DatePicker` component built from Radix `Popover` and `Calendar` primitives).
 
-### 5. Migration Planning for Brownfield UI Enhancement
+### 4.2. Component Categorization
 
-Given that "CalendarSync" is an existing application, a phased and incremental migration strategy is crucial to minimize disruption and risk.
+*   **`components/ui/`:** Contains styled, reusable components directly built upon or heavily inspired by Radix UI. These should be generic and stateless where possible.
+*   **`components/common/`:** Contains application-wide reusable components that are not directly tied to Radix UI but are fundamental (e.g., `Layout`, `Header`, `Footer`).
+*   **`components/specific/`:** Contains components that are specific to a particular feature or page, composed from `ui` and `common` components. These may contain more application-specific logic and state.
 
-*   **Identify Enhancement Areas:** Based on the PRD and UI/UX specifications, pinpoint specific features or sections of the UI targeted for enhancement or modernization.
-*   **Feature Flagging:** Implement feature flags for new or significantly altered functionalities. This allows for controlled rollout, A/B testing, and easy rollback if issues arise.
-*   **Strangler Fig Pattern:** For major overhauls of existing sections, consider the Strangler Fig pattern:
-    1.  Develop new UI components/features alongside the old ones.
-    2.  Gradually redirect traffic or users to the new components.
-    3.  Once the new system is stable and fully functional, deprecate and remove the old components.
-*   **Incremental Refactoring:** Instead of a "big bang" rewrite, focus on refactoring specific components or modules as new features are integrated or bugs are fixed.
-*   **Automated Testing:** Strengthen the existing test suite (unit, integration, end-to-end tests) to ensure that new changes do not introduce regressions. Prioritize tests for critical user flows.
-*   **Performance Monitoring:** Continuously monitor frontend performance metrics (e.g., Core Web Vitals) to ensure enhancements do not degrade user experience.
-*   **Documentation:** Maintain up-to-date documentation for new architectures, components, and migration steps.
+### 4.3. State Management
 
-### 6. Technology Considerations (Further Evaluation)
+*   **Local Component State:** Use `useState` and `useReducer` for state confined to a single component or a small subtree.
+*   **Global Application State:** For shared state across disparate components, consider:
+    *   **React Context API:** For themes, user authentication status, or other broadly used but infrequently updated data.
+    *   **Data Fetching Libraries (React Query/SWR):** For server-side data that needs caching, revalidation, and synchronization.
+    *   **Dedicated State Management (e.g., Zustand, Jotai):** If the application's state complexity grows significantly beyond what Context or data fetching libraries can elegantly handle.
 
-*   **Build Tooling:** Verify existing Webpack/Vite configuration. Optimize for faster build times and smaller bundle sizes.
-*   **Linting & Formatting:** Ensure consistent code style with ESLint and Prettier.
-*   **Bundling:** Tree-shaking, code-splitting for optimized delivery.
-*   **Deployment:** Review CI/CD pipeline for automated testing and deployment.
+### 4.4. Styling Consistency
 
-### 7. Conclusion
+*   **Utility-First CSS (Tailwind CSS):** If not already in use, consider migrating to Tailwind CSS for rapid and consistent styling, especially when extending Radix UI components.
+*   **CSS Variables:** Define global CSS variables for colors, typography, spacing, etc., to ensure a consistent design system.
+*   **`cn` Utility:** A utility function (e.g., `clsx` or a custom `cn`) to conditionally apply Tailwind classes and merge them efficiently.
 
-This frontend architecture provides a roadmap for enhancing the "CalendarSync" application. By adhering to these principles, strategies, and migration plans, we can ensure a robust, maintainable, and scalable frontend that delivers an improved user experience while safely integrating with the existing codebase.
+## 5. Migration Planning & Enhancement Strategy
+
+The enhancement process will involve a phased approach to minimize risk and ensure a smooth transition.
+
+### 5.1. Phase 1: Assessment & Setup (Completed/Ongoing)
+
+*   **Codebase Audit:** Deep dive into existing components, styling, state management, and data flow.
+*   **Identify Pain Points:** Gather user feedback and analytics to pinpoint areas requiring improvement.
+*   **Tooling Setup:** Ensure development environment, linting, formatting, and testing frameworks are configured.
+*   **Branching Strategy:** Implement a feature-branch workflow (e.g., `feature/ui-enhancement-xyz` from `main`).
+
+### 5.2. Phase 2: Foundation & Pilot Enhancements
+
+*   **Create Shared UI Components:** Develop a set of core `components/ui` based on Radix UI and the established styling (e.g., `Button`, `Input`, `Dialog`).
+*   **Pilot Feature Implementation:** Choose a small, isolated feature or a less critical section of the UI to apply the new architecture and components. This will serve as a proof-of-concept and allow for refinement of the process.
+*   **Establish Design Tokens:** Define and implement design tokens (colors, typography, spacing) as CSS variables or Tailwind config extensions.
+
+### 5.3. Phase 3: Iterative Enhancement & Refactoring
+
+*   **Feature-by-Feature Enhancement:** Address identified improvement areas one feature or page at a time.
+*   **Component Swapping:** Gradually replace older, custom UI elements with the new, standardized `components/ui` where applicable.
+*   **Refactor Existing Logic:** As components are updated, refactor associated logic to align with best practices (e.g., moving data fetching to React Query, centralizing form logic with React Hook Form).
+*   **Performance Audits:** Regularly conduct performance audits (Lighthouse, React DevTools Profiler) to identify and address bottlenecks.
+
+### 5.4. Phase 4: Testing & Deployment
+
+*   **Unit & Integration Testing:** Write comprehensive tests for new and refactored components and logic.
+*   **End-to-End Testing:** Ensure critical user flows are functioning correctly after changes.
+*   **User Acceptance Testing (UAT):** Involve stakeholders and target users to validate the enhancements.
+*   **Phased Rollout:** Consider a phased rollout (e.g., A/B testing, canary deployments) for major UI changes if feasible.
+
+## 6. Future Considerations
+
+*   **Storybook/Component Documentation:** Implement Storybook or similar tool for documenting and showcasing UI components.
+*   **Automated Accessibility Testing:** Integrate tools like axe-core for automated accessibility checks.
+*   **Performance Monitoring:** Set up real user monitoring (RUM) to track performance metrics in production.
+
+This architecture document provides a high-level plan. Specific implementation details will evolve as the codebase is further explored and concrete enhancement requirements emerge.
