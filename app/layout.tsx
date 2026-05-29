@@ -6,29 +6,46 @@ import { Analytics } from "@vercel/analytics/next"
 import { Toaster } from "sonner"
 import { Suspense } from "react"
 import { ThemeProvider } from "next-themes"
+import { NextIntlClientProvider } from "next-intl"
+import { getMessages, getLocale, getTranslations } from "next-intl/server"
 import "./globals.css"
 
-export const metadata: Metadata = {
-  title: "CalendarSync - Share Your Availability",
-  description: "Schedule meetings effortlessly by sharing your Google Calendar availability",
-  generator: "v0.app",
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("metadata")
+  return {
+    title: t("title"),
+    description: t("description"),
+    icons: {
+      icon: "/icon.svg",
+    },
+  }
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const locale = await getLocale()
+  const messages = await getMessages()
+  const dir = locale === "he" ? "rtl" : "ltr"
+  const loadingText =
+    typeof messages.common === "object" && messages.common && "loading" in messages.common
+      ? String(messages.common.loading)
+      : ""
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} dir={dir} suppressHydrationWarning>
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <Suspense fallback={<div>Loading...</div>}>
-            {children}
-            <Toaster position="top-center" />
-          </Suspense>
-          <Analytics />
-        </ThemeProvider>
+        <NextIntlClientProvider messages={messages}>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            <Suspense fallback={<div>{loadingText}</div>}>
+              {children}
+              <Toaster position="top-center" />
+            </Suspense>
+            <Analytics />
+          </ThemeProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   )

@@ -4,13 +4,17 @@ import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Calendar, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { CardInfoTooltip } from "@/components/dashboard/card-info-tooltip"
 import { useRouter } from "next/navigation"
 import type { MeetingProposal } from "@/lib/proposals"
+import { useTranslations } from "next-intl"
 
 export function UpcomingMeetingsCard() {
   const [proposals, setProposals] = useState<MeetingProposal[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
+  const t = useTranslations("meetingsCard")
+  const tCommon = useTranslations("common")
 
   useEffect(() => {
     fetchProposals()
@@ -21,8 +25,7 @@ export function UpcomingMeetingsCard() {
       const response = await fetch("/api/proposals")
       const data = await response.json()
       setProposals(data.proposals || [])
-    } catch (error) {
-      console.error("Failed to fetch proposals:", error)
+    } catch {
       setProposals([])
     } finally {
       setIsLoading(false)
@@ -32,30 +35,37 @@ export function UpcomingMeetingsCard() {
   const pendingProposals = proposals.filter((p) => p.status === "pending")
 
   return (
-    <Card>
+    <Card className="flex flex-col">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Calendar className="h-5 w-5" />
-          Meeting Proposals
+          {t("title")}
         </CardTitle>
-        <CardDescription>Pending meeting requests</CardDescription>
+        <CardInfoTooltip label={tCommon("moreInfo")} content={t("tooltip")} />
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex flex-col flex-1">
         {isLoading ? (
-          <div className="flex items-center justify-center py-6">
+          <div className="flex flex-1 items-center justify-center py-6">
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
           </div>
-        ) : pendingProposals.length === 0 ? (
-          <div className="text-center py-6 text-muted-foreground text-sm">No pending proposals</div>
         ) : (
-          <div className="space-y-3">
-            <div className="text-sm font-medium">
-              {pendingProposals.length} pending {pendingProposals.length === 1 ? "proposal" : "proposals"}
+          <>
+            <div className="flex-1">
+              {pendingProposals.length === 0 ? (
+                <div className="text-center py-6 text-muted-foreground text-sm">{t("noPending")}</div>
+              ) : (
+                <div className="text-sm font-medium">
+                  {pendingProposals.length === 1
+                    ? t("pendingCount", { count: 1 })
+                    : t("pendingCountPlural", { count: pendingProposals.length })}
+                </div>
+              )}
             </div>
-            <Button className="w-full bg-transparent" variant="outline" onClick={() => router.push("/proposals")}>
-              Review Proposals
+            <Button className="w-full bg-transparent mt-3" variant="outline" onClick={() => router.push("/proposals")}>
+              {t("reviewProposals")}
             </Button>
-          </div>
+          </>
         )}
       </CardContent>
     </Card>

@@ -6,13 +6,16 @@ export interface CalendarEvent {
   start: {
     dateTime?: string
     date?: string
+    timeZone?: string
   }
   end: {
     dateTime?: string
     date?: string
+    timeZone?: string
   }
   status: string
   description?: string
+  location?: string
   attendees?: Array<{ email: string }>
   reminders?: {
     useDefault: boolean

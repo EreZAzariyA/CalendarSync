@@ -1,168 +1,182 @@
 # CalendarSync
 
-A modern web application that allows users to share their Google Calendar availability and schedule meetings effortlessly. Built with Next.js 15, TypeScript, and MongoDB.
+CalendarSync is a Next.js app for sharing Google Calendar availability and collecting meeting proposals. Users sign in with Google, get a private share link, and review proposed meeting times from a dashboard.
 
 ## Features
 
-- 🔐 **Google OAuth Authentication** - Secure sign-in with Google accounts
-- 📅 **Calendar Integration** - Real-time Google Calendar availability checking
-- 🔗 **Shareable Links** - Generate unique tokens to share your availability
-- 📝 **Meeting Proposals** - Allow others to propose meeting times
-- 📊 **Dashboard** - Comprehensive overview of your calendar and proposals
-- 🎨 **Modern UI** - Beautiful, responsive design with Tailwind CSS
-- 📱 **Mobile Friendly** - Optimized for all device sizes
+- Google OAuth sign-in
+- Google Calendar event and free/busy integration
+- Public availability pages at `/share/[token]`
+- Meeting types with direct booking, proposal, or group poll modes
+- Global availability defaults with per-meeting-type overrides
+- Custom intake questions per meeting type
+- Meeting proposal submission and review
+- Confirmed booking records for direct bookings and accepted proposals or polls
+- QR code and iframe embed sharing for meeting type links
+- Calendar event creation after accepting a proposal
+- User settings for theme, language, timezone, meeting duration, and notifications
+- Optional email notifications through Resend
+- English and Hebrew localization
 
 ## Tech Stack
 
-- **Frontend**: Next.js 15, React 19, TypeScript
-- **Styling**: Tailwind CSS, Radix UI components
-- **Backend**: Next.js API Routes
-- **Database**: MongoDB with Mongoose
-- **Authentication**: Google OAuth 2.0
-- **Calendar API**: Google Calendar API
-- **Deployment**: Vercel (recommended)
+- Next.js 15 App Router
+- React 19
+- TypeScript
+- Tailwind CSS
+- Radix UI primitives
+- MongoDB with Mongoose
+- Google OAuth 2.0 and Google Calendar API
+- next-intl for localization
+- next-themes for light/dark/system theme support
 
-## Prerequisites
+## Getting Started
 
-Before running this project, make sure you have:
+### Prerequisites
 
-- Node.js 18+ installed
-- MongoDB database (local or cloud)
-- Google Cloud Console project with Calendar API enabled
-- Google OAuth 2.0 credentials
+- Node.js 18 or newer
+- MongoDB connection string
+- Google Cloud project with OAuth credentials
+- Google Calendar API enabled
 
-## Environment Variables
+### Install Dependencies
 
-Create a `.env.local` file in the root directory with the following variables:
-
-```env
-# MongoDB
-MONGODB_URI=mongodb://localhost:27017/calendar-sync
-# or for MongoDB Atlas: mongodb+srv://username:password@cluster.mongodb.net/calendar-sync
-
-# Google OAuth
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-
-# App URL (for production)
-NEXT_PUBLIC_APP_URL=https://your-domain.com
-# For development, this can be omitted (defaults to localhost:3000)
-```
-
-## Google Cloud Setup
-
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select an existing one
-3. Enable the Google Calendar API
-4. Go to "Credentials" and create OAuth 2.0 Client ID
-5. Add authorized redirect URIs:
-   - `http://localhost:3000/api/auth/callback` (development)
-   - `https://your-domain.com/api/auth/callback` (production)
-6. Copy the Client ID and Client Secret to your `.env.local` file
-
-## Installation
-
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd calendar-scheduler
-```
-
-2. Install dependencies:
 ```bash
 npm install
-# or
-pnpm install
 ```
 
-3. Set up your environment variables (see above)
+### Configure Environment
 
-4. Run the development server:
+Create `.env.local` in the project root. Use `.env.example` as the template.
+
+```env
+MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/<dbname>?retryWrites=true&w=majority
+
+GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+RESEND_API_KEY=
+EMAIL_FROM=CalendarSync <onboarding@resend.dev>
+```
+
+`RESEND_API_KEY` is optional. If it is not set, email sending is skipped and the app still works.
+
+### Google OAuth Setup
+
+In Google Cloud Console:
+
+1. Create or select a project.
+2. Enable the Google Calendar API.
+3. Create OAuth 2.0 credentials.
+4. Add redirect URIs:
+   - `http://localhost:3000/api/auth/callback`
+   - `https://your-domain.com/api/auth/callback`
+5. Copy the client ID and secret into `.env.local`.
+
+### Run Locally
+
 ```bash
 npm run dev
-# or
-pnpm dev
 ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser
+Open `http://localhost:3000`.
+
+## App Routes
+
+- `/` - entry route
+- `/auth/signin` - Google sign-in page
+- `/dashboard` - signed-in user dashboard
+- `/meeting-types` - create and manage scheduling links
+- `/availability` - calendar and availability view
+- `/proposals` - meeting proposal review
+- `/settings` - theme, language, notification, and calendar preferences
+- `/profile` - account profile
+- `/share/[token]` - public scheduling page for a user's availability link
+- `/share/[token]/[slug]` - direct public link to one meeting type
+- `/polls/[shareToken]` - public group poll voting page
+
+## API Routes
+
+- `GET /api/auth/google` - start Google OAuth
+- `GET /api/auth/callback` - handle Google OAuth callback
+- `POST /api/auth/logout` - clear the session
+- `GET /api/calendar/events` - load signed-in user's calendar events
+- `GET /api/calendar/freebusy` - load signed-in user's busy periods
+- `GET /api/calendar/freebusy/[shareToken]` - load public busy periods for a share link
+- `GET /api/availability/[shareToken]/[slug]` - load available slots for one public meeting type
+- `POST /api/calendar/create-event` - create a Google Calendar event
+- `GET /api/meeting-types` - list meeting types
+- `POST /api/meeting-types` - create a meeting type
+- `GET /api/meeting-types/[id]` - load a meeting type
+- `PATCH /api/meeting-types/[id]` - update or disable a meeting type
+- `POST /api/meeting-types/[id]/duplicate` - copy a meeting type
+- `POST /api/bookings` - create a confirmed direct booking
+- `GET /api/polls` - list group polls
+- `POST /api/polls` - create a group poll
+- `PATCH /api/polls/[id]` - close or finalize a group poll
+- `GET /api/public/polls/[shareToken]` - load public poll details
+- `POST /api/public/polls/[shareToken]` - submit a poll vote
+- `GET /api/proposals` - list proposals for the signed-in organizer
+- `POST /api/proposals` - submit a new proposal
+- `GET /api/proposals/[id]` - load a proposal
+- `PUT /api/proposals/[id]` - accept or reject a proposal
+- `GET /api/user/share-token` - get the signed-in user's share token
+- `POST /api/user/regenerate-share-token` - regenerate the share token
+- `POST /api/user/fix-share-token` - backfill a missing share token
+- `GET /api/user/settings` - load user settings
+- `PUT /api/user/settings` - update user settings
+- `PUT /api/user/locale` - update user locale
 
 ## Project Structure
 
+```text
+app/
+  api/                 API routes
+  auth/                authentication pages
+  availability/        calendar availability page
+  dashboard/           signed-in dashboard
+  profile/             profile page
+  proposals/           proposal review page
+  settings/            user settings page
+  share/[token]/       public scheduling page
+components/
+  auth/                auth UI
+  availability/        calendar UI
+  dashboard/           dashboard cards and header
+  profile/             profile UI
+  proposals/           proposal UI
+  settings/            settings UI
+  share/               public scheduling UI
+  ui/                  reusable primitives
+i18n/                  next-intl request config
+lib/
+  models/              Mongoose models
+  auth.ts              session helpers
+  google-calendar.ts   Google Calendar integration
+  mongodb.ts           database connection
+  proposals.ts         proposal helpers
+  user-settings.ts     settings helpers
+messages/              locale dictionaries
 ```
-calendar-scheduler/
-├── app/                    # Next.js App Router
-│   ├── api/               # API routes
-│   │   ├── auth/          # Authentication endpoints
-│   │   ├── calendar/      # Calendar operations
-│   │   ├── proposals/     # Meeting proposals
-│   │   └── user/          # User management
-│   ├── auth/              # Authentication pages
-│   ├── dashboard/         # Main dashboard
-│   ├── share/             # Public sharing pages
-│   └── ...                # Other pages
-├── components/            # React components
-│   ├── auth/              # Authentication components
-│   ├── dashboard/         # Dashboard components
-│   ├── share/             # Sharing components
-│   └── ui/                # Reusable UI components
-├── lib/                   # Utility libraries
-│   ├── models/            # Database models
-│   ├── auth.ts            # Authentication utilities
-│   ├── google-calendar.ts # Google Calendar API client
-│   ├── mongodb.ts         # Database connection
-│   └── proposals.ts       # Proposal management
-└── hooks/                 # Custom React hooks
+
+## Scripts
+
+```bash
+npm run dev      # start the local Next.js dev server
+npm run build    # create a production build
+npm run start    # start the production server
+npm run lint     # run linting
 ```
 
-## Key Features Explained
+## Data Models
 
-### Authentication Flow
-- Users sign in with Google OAuth 2.0
-- Access tokens are stored securely in HTTP-only cookies
-- Session management with automatic token refresh
+### User
 
-### Calendar Integration
-- Real-time availability checking using Google Calendar API
-- Free/busy time detection
-- Event creation and management
+Users are stored in MongoDB with Google identity fields, OAuth tokens, a unique share token, and settings.
 
-### Sharing System
-- Each user gets a unique share token
-- Public pages allow others to view availability
-- Meeting proposals can be submitted through shared links
-
-### Proposal Management
-- Users can propose multiple meeting times
-- Organizers can accept/reject proposals
-- Automatic calendar event creation upon acceptance
-
-## API Endpoints
-
-### Authentication
-- `GET /api/auth/google` - Initiate Google OAuth
-- `GET /api/auth/callback` - Handle OAuth callback
-- `POST /api/auth/logout` - Sign out user
-
-### Calendar
-- `GET /api/calendar/events` - Get user's calendar events
-- `GET /api/calendar/freebusy` - Get availability data
-- `POST /api/calendar/create-event` - Create calendar event
-
-### Proposals
-- `GET /api/proposals` - Get user's proposals
-- `POST /api/proposals` - Create new proposal
-- `GET /api/proposals/[id]` - Get specific proposal
-- `PUT /api/proposals/[id]` - Update proposal status
-
-### User Management
-- `GET /api/user/share-token` - Get user's share token
-- `POST /api/user/regenerate-share-token` - Generate new token
-- `POST /api/user/fix-share-token` - Fix token issues
-
-## Database Schema
-
-### User Model
-```typescript
+```ts
 {
   googleId: string
   email: string
@@ -172,13 +186,23 @@ calendar-scheduler/
   refreshToken?: string
   tokenExpiresAt?: Date
   shareToken: string
-  createdAt: Date
-  updatedAt: Date
+  settings: {
+    theme: "light" | "dark" | "system"
+    timezone: string
+    defaultMeetingDuration: number
+    emailNotifications: boolean
+    browserNotifications: boolean
+    autoAcceptMeetings: boolean
+    locale: "en" | "he"
+  }
 }
 ```
 
-### Proposal Model
-```typescript
+### Proposal
+
+Proposals track the organizer, proposer, suggested time slots, status, selected slot, and optional calendar event ID.
+
+```ts
 {
   organizerId: string
   organizerName: string
@@ -187,57 +211,13 @@ calendar-scheduler/
   proposedSlots: Date[]
   status: "pending" | "accepted" | "rejected"
   selectedSlot?: Date
-  createdAt: Date
+  calendarEventId?: string
 }
 ```
 
-## Deployment
+## Notes
 
-### Vercel (Recommended)
-
-1. Push your code to GitHub
-2. Connect your repository to Vercel
-3. Add environment variables in Vercel dashboard
-4. Deploy automatically on every push
-
-### Other Platforms
-
-The app can be deployed to any platform that supports Next.js:
-- Netlify
-- Railway
-- Render
-- DigitalOcean App Platform
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature-name`
-3. Commit your changes: `git commit -am 'Add feature'`
-4. Push to the branch: `git push origin feature-name`
-5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Support
-
-If you encounter any issues or have questions:
-
-1. Check the existing issues on GitHub
-2. Create a new issue with detailed information
-3. Include error messages and steps to reproduce
-
-## Roadmap
-
-- [ ] Email notifications for proposals
-- [ ] Calendar sync with other providers (Outlook, Apple)
-- [ ] Advanced scheduling rules and preferences
-- [ ] Team/group scheduling features
-- [ ] Mobile app (React Native)
-- [ ] API rate limiting and optimization
-- [ ] Enhanced UI/UX improvements
-
----
-
-Built with ❤️ using Next.js, TypeScript, and modern web technologies.
+- Sessions are stored in an HTTP-only cookie named `calendar_sync_session`.
+- Public share pages use the user's `shareToken`; calendar event details are not exposed.
+- Email delivery is best effort and optional.
+- Theme and locale settings are stored per user.

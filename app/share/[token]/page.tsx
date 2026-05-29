@@ -1,6 +1,9 @@
-import { ShareAvailabilityView } from "@/components/share/share-availability-view"
+import { MeetingTypeShareView } from "@/components/share/meeting-type-share-view"
+import { ShareEntryView } from "@/components/share/share-entry-view"
 import { connectToDatabase } from "@/lib/mongodb"
 import { User } from "@/lib/models/User"
+import { getActiveMeetingTypesForUser } from "@/lib/meeting-types"
+import { normalizeUserSettings } from "@/lib/user-settings"
 import { notFound } from "next/navigation"
 
 interface SharePageProps {
@@ -20,10 +23,21 @@ export default async function SharePage({ params }: SharePageProps) {
     notFound()
   }
 
+  const meetingTypes = await getActiveMeetingTypesForUser(user)
+  const settings = normalizeUserSettings(user.settings)
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-background dark:via-background dark:to-background">
       <div className="container mx-auto px-4 py-8">
-        <ShareAvailabilityView userId={user._id.toString()} userName={user.name} shareToken={token} />
+        {meetingTypes.length === 1 ? (
+          <MeetingTypeShareView
+            organizer={{ id: user._id.toString(), name: user.name, shareToken: token }}
+            meetingType={meetingTypes[0]}
+            timeZone={settings.timezone}
+          />
+        ) : (
+          <ShareEntryView organizerName={user.name} shareToken={token} meetingTypes={meetingTypes} />
+        )}
       </div>
     </div>
   )

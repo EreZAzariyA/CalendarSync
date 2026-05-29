@@ -2,9 +2,11 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { CardInfoTooltip } from "@/components/dashboard/card-info-tooltip"
 import { Share2, Copy, Check, Loader2 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { toast } from "sonner"
+import { useTranslations } from "next-intl"
 
 interface ShareLinkCardProps {
   userId: string
@@ -15,69 +17,68 @@ export function ShareLinkCard({ userId, userName }: ShareLinkCardProps) {
   const [copied, setCopied] = useState(false)
   const [shareUrl, setShareUrl] = useState("")
   const [isLoading, setIsLoading] = useState(true)
-  const [shareToken, setShareToken] = useState<string | null>(null)
+  const t = useTranslations("shareCard")
+  const tCommon = useTranslations("common")
 
   useEffect(() => {
     async function fetchShareToken() {
       try {
         const response = await fetch("/api/user/share-token")
-        if (!response.ok) {
-          throw new Error("Failed to fetch share token")
-        }
+        if (!response.ok) throw new Error("Failed to fetch share token")
         const data = await response.json()
-        setShareToken(data.shareToken)
         setShareUrl(`${window.location.origin}/share/${data.shareToken}`)
-      } catch (error) {
-        console.error("Failed to fetch share token:", error)
-        toast.error("Failed to load share link")
+      } catch {
+        toast.error(t("loadError"))
       } finally {
         setIsLoading(false)
       }
     }
-
     fetchShareToken()
-  }, [])
+  }, [t])
 
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl)
       setCopied(true)
-      toast.success("Link copied to clipboard!")
+      toast.success(t("copyLink"))
       setTimeout(() => setCopied(false), 2000)
-    } catch (error) {
-      toast.error("Failed to copy link")
+    } catch {
+      toast.error(t("copyError"))
     }
   }
 
   return (
-    <Card>
+    <Card className="flex flex-col">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Share2 className="h-5 w-5" />
-          Share Your Availability
+          {t("title")}
         </CardTitle>
-        <CardDescription>Let others see when you're available</CardDescription>
+        <CardInfoTooltip label={tCommon("moreInfo")} content={t("tooltip")} />
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="flex flex-col flex-1">
         {isLoading ? (
-          <div className="flex items-center justify-center py-4">
+          <div className="flex flex-1 items-center justify-center py-4">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : (
           <>
-            <div className="rounded-lg bg-muted p-3">
-              <p className="text-xs font-mono text-muted-foreground break-all">{shareUrl || "Loading..."}</p>
+            <div className="flex-1 space-y-3">
+              <div className="rounded-lg bg-muted p-3">
+                <p className="text-xs font-mono text-muted-foreground break-all">{shareUrl || "Loading..."}</p>
+              </div>
             </div>
-            <Button className="w-full" onClick={handleCopyLink} disabled={!shareUrl}>
+            <Button className="w-full mt-3" onClick={handleCopyLink} disabled={!shareUrl}>
               {copied ? (
                 <>
-                  <Check className="mr-2 h-4 w-4" />
-                  Copied!
+                  <Check className="me-2 h-4 w-4" />
+                  {t("copied")}
                 </>
               ) : (
                 <>
-                  <Copy className="mr-2 h-4 w-4" />
-                  Copy Link
+                  <Copy className="me-2 h-4 w-4" />
+                  {t("copyLink")}
                 </>
               )}
             </Button>

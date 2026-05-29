@@ -1,13 +1,19 @@
 import mongoose, { Schema, model, models } from "mongoose"
+import type { CustomAnswer } from "@/lib/scheduling"
 
 export interface IProposal {
   organizerId: string
   organizerName: string
+  meetingTypeId?: string
+  meetingTypeTitle?: string
+  durationMinutes?: number
   proposerName: string
   proposerEmail: string
   proposedSlots: Date[]
+  answers: CustomAnswer[]
   status: "pending" | "accepted" | "rejected"
   selectedSlot?: Date
+  calendarEventId?: string
   createdAt: Date
 }
 
@@ -22,6 +28,19 @@ const ProposalSchema = new Schema<IProposal>(
       type: String,
       required: true,
     },
+    meetingTypeId: {
+      type: String,
+      required: false,
+      index: true,
+    },
+    meetingTypeTitle: {
+      type: String,
+      required: false,
+    },
+    durationMinutes: {
+      type: Number,
+      required: false,
+    },
     proposerName: {
       type: String,
       required: true,
@@ -34,6 +53,16 @@ const ProposalSchema = new Schema<IProposal>(
       type: [Date],
       required: true,
     },
+    answers: {
+      type: [
+        {
+          questionId: { type: String, required: true },
+          label: { type: String, required: true },
+          value: { type: String, required: true },
+        },
+      ],
+      default: () => [],
+    },
     status: {
       type: String,
       enum: ["pending", "accepted", "rejected"],
@@ -41,6 +70,10 @@ const ProposalSchema = new Schema<IProposal>(
     },
     selectedSlot: {
       type: Date,
+      required: false,
+    },
+    calendarEventId: {
+      type: String,
       required: false,
     },
   },
