@@ -75,10 +75,10 @@ export function CalendarView({ timezone }: CalendarViewProps) {
                 {t("today")}
               </Button>
               <Button variant="outline" size="icon" onClick={() => setCurrentWeekStart(addDays(currentWeekStart, -7))}>
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className={`h-4 w-4 ${locale === "he" ? "rotate-180" : ""}`} />
               </Button>
               <Button variant="outline" size="icon" onClick={() => setCurrentWeekStart(addDays(currentWeekStart, 7))}>
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className={`h-4 w-4 ${locale === "he" ? "rotate-180" : ""}`} />
               </Button>
               <Button variant="outline" size="sm" asChild>
                 <a href="https://calendar.google.com" target="_blank" rel="noopener noreferrer">

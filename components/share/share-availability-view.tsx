@@ -187,11 +187,11 @@ export function ShareAvailabilityView({ userId, userName, shareToken }: ShareAva
                 <CardHeader className="pb-4">
                   <div className="flex items-center justify-between">
                     <Button variant="ghost" size="sm" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
-                      <ChevronLeft className="h-4 w-4" />
+                      <ChevronLeft className={`h-4 w-4 ${locale === "he" ? "rotate-180" : ""}`} />
                     </Button>
                     <CardTitle className="text-base font-semibold">{format(currentMonth, "MMMM yyyy", { locale: dateLocale })}</CardTitle>
                     <Button variant="ghost" size="sm" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
-                      <ChevronRight className="h-4 w-4" />
+                      <ChevronRight className={`h-4 w-4 ${locale === "he" ? "rotate-180" : ""}`} />
                     </Button>
                   </div>
                 </CardHeader>
